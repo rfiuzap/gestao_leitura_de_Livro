@@ -34,8 +34,58 @@ function load_env_file(string $path): void
 
 load_env_file(BASE_PATH . '/.env');
 
-define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: '');
-define('OPENAI_API_KEY', getenv('OPENAI_API_KEY') ?: '');
+// Ambiente: local, demo ou producao (definido no .env de cada instalacao).
+define('APP_ENV', in_array(getenv('APP_ENV'), ['local', 'demo', 'producao'], true) ? getenv('APP_ENV') : 'local');
+
+// Na demo a IA fica desligada: os visitantes nao consomem as chaves pagas.
+define('GEMINI_API_KEY', APP_ENV === 'demo' ? '' : (getenv('GEMINI_API_KEY') ?: ''));
+define('OPENAI_API_KEY', APP_ENV === 'demo' ? '' : (getenv('OPENAI_API_KEY') ?: ''));
+
+// Conta de demonstracao (so existe e so entra no ambiente demo).
+define('DEMO_LOGIN', 'demo');
+define('DEMO_EMAIL', 'demo@demo.com');
+define('DEMO_PASSWORD', 'demo123');
+define('DEMO_RESET_SECONDS', 2 * 60 * 60);
+define('DEMO_BASE_PATH', DATA_PATH . DIRECTORY_SEPARATOR . 'demo_base.sqlite');
+define('DEMO_STAMP_PATH', DATA_PATH . DIRECTORY_SEPARATOR . 'demo_reset_at');
+
+function is_demo(): bool
+{
+    return APP_ENV === 'demo';
+}
+
+function is_demo_user(?array $user): bool
+{
+    return is_demo() && $user !== null && strcasecmp((string) ($user['email'] ?? ''), DEMO_EMAIL) === 0;
+}
+
+/**
+ * Na demo, a cada DEMO_RESET_SECONDS o banco volta a ser a copia de demo_base.sqlite
+ * (gerada por demo_seed.php). Roda na primeira requisicao depois do prazo; nao precisa de cron.
+ */
+function demo_restore_if_due(): void
+{
+    if (!is_demo() || !is_file(DEMO_BASE_PATH)) {
+        return;
+    }
+
+    $last = is_file(DEMO_STAMP_PATH) ? (int) file_get_contents(DEMO_STAMP_PATH) : 0;
+    if (time() - $last < DEMO_RESET_SECONDS) {
+        return;
+    }
+
+    $lock = fopen(DATA_PATH . DIRECTORY_SEPARATOR . 'demo_reset.lock', 'c');
+    if ($lock === false || !flock($lock, LOCK_EX | LOCK_NB)) {
+        return;
+    }
+
+    $tmp = DB_PATH . '.restore';
+    if (copy(DEMO_BASE_PATH, $tmp) && rename($tmp, DB_PATH)) {
+        file_put_contents(DEMO_STAMP_PATH, (string) time());
+    }
+    flock($lock, LOCK_UN);
+    fclose($lock);
+}
 
 function security_questions(): array
 {
@@ -64,6 +114,7 @@ function db(): PDO
     }
 
     ensure_data_path();
+    demo_restore_if_due();
 
     $pdo = new PDO('sqlite:' . DB_PATH);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -314,6 +365,14 @@ function app_shell_head(string $title): void
     echo '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">';
     echo '<style>body>main,body>div{min-height:0!important;flex:1 0 auto}</style>';
     echo '<script src="https://unpkg.com/@phosphor-icons/web"></script></head><body class="flex min-h-screen flex-col bg-zinc-50 pb-16 font-sans text-zinc-900 antialiased">';
+    if (is_demo()) {
+        echo '<div class="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm text-amber-800"><strong>Ambiente de demonstracao</strong> &middot; Usuario: <code>' . DEMO_LOGIN . '</code> &middot; Senha: <code>' . DEMO_PASSWORD . '</code> &middot; Os dados voltam ao original a cada 2 horas.</div>';
+    }
+}
+
+function demo_blocked_message(): string
+{
+    return 'Funcao desabilitada no ambiente de demonstracao.';
 }
 
 function app_shell_foot(): void

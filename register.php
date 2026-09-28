@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/config.php';
 
+if (is_demo()) {
+    redirect('login.php');
+}
+
 if (current_user()) {
     redirect('dashboard.php');
 }

@@ -16,3 +16,7 @@ Options -Indexes
 <FilesMatch "^config\.php$">
     Require all denied
 </FilesMatch>
+
+<FilesMatch "^demo_seed\.php$">
+    Require all denied
+</FilesMatch>

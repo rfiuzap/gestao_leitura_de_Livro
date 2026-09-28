@@ -32,10 +32,12 @@ app_shell_head('Gestao de Leitura de Livros');
         <h1 class="max-w-2xl text-4xl font-bold tracking-tight text-zinc-950 sm:text-5xl">Gestao completa da sua leitura de livros.</h1>
         <p class="mt-5 max-w-xl text-base leading-7 text-zinc-500">Cadastre os livros que ja leu, esta lendo ou quer ler. Acompanhe paginas, genero, resumo, personagens e sua nota — tudo numa estante pessoal conectada a comunidade.</p>
         <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <?php if (!is_demo()): ?>
             <a href="register.php" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-zinc-900 px-5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2">
                 <i class="ph ph-plus"></i>
                 Criar conta
             </a>
+            <?php endif; ?>
             <a href="login.php" class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-5 text-sm font-medium text-zinc-900 shadow-sm transition hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2">
                 <i class="ph ph-user"></i>
                 Entrar

@@ -21,6 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!valid_csrf_token($_POST['csrf_token'] ?? null)) {
         $profileError = 'Sessao expirada. Atualize a pagina e tente novamente.';
+    } elseif (is_demo_user($user) && $action === 'change_password') {
+        $passwordError = demo_blocked_message();
+    } elseif (is_demo_user($user) && $action === 'update_security_question') {
+        $securityError = demo_blocked_message();
     } elseif ($action === 'update_profile') {
         $name = trim($_POST['name'] ?? '');
         $gender = trim($_POST['gender'] ?? '');

@@ -2,7 +2,7 @@
 
 Este guia publica o projeto disponível em:
 
-`https://github.com/rfiuzap/livros`
+`https://github.com/rfiuzap/gestao_leitura_de_Livro`
 
 ## 1. Preparar o domínio
 
@@ -38,7 +38,7 @@ Para instalar em `seudominio.com/livros`:
 
 ```bash
 cd ~/public_html
-git clone https://github.com/rfiuzap/livros.git livros
+git clone https://github.com/rfiuzap/gestao_leitura_de_Livro.git livros
 cd livros
 ```
 
@@ -46,7 +46,7 @@ Para instalar diretamente no domínio principal, use somente uma pasta `public_h
 
 ```bash
 cd ~/public_html
-git clone https://github.com/rfiuzap/livros.git .
+git clone https://github.com/rfiuzap/gestao_leitura_de_Livro.git .
 ```
 
 O ponto final no último comando é obrigatório. Ele coloca os arquivos diretamente em `public_html`.
@@ -59,7 +59,7 @@ O ponto final no último comando é obrigatório. Ele coloca os arquivos diretam
 4. Em **Clone URL**, informe:
 
 ```text
-https://github.com/rfiuzap/livros.git
+https://github.com/rfiuzap/gestao_leitura_de_Livro.git
 ```
 
 1. Em **Repository Path**, escolha `public_html/livros` ou a pasta raiz vazia do domínio.

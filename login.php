@@ -19,10 +19,15 @@ if (isset($_GET['password_reset'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
+    if (is_demo() && strcasecmp($email, DEMO_LOGIN) === 0) {
+        $email = DEMO_EMAIL;
+    }
     $password = (string) ($_POST['password'] ?? '');
     $loginIdentifier = ($_SERVER['REMOTE_ADDR'] ?? 'unknown') . '|' . strtolower($email);
 
-    if ($email !== '' && too_many_attempts('login', $loginIdentifier, 10, 900)) {
+    if (!is_demo() && strcasecmp($email, DEMO_EMAIL) === 0) {
+        $error = 'O usuario de demonstracao so esta disponivel no ambiente demo.';
+    } elseif ($email !== '' && too_many_attempts('login', $loginIdentifier, 10, 900)) {
         $error = 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
     } else {
         $stmt = db()->prepare('SELECT * FROM users WHERE email = :email');
@@ -58,9 +63,12 @@ app_shell_head('Entrar');
         <?php if ($notice): ?>
             <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"><?= h($notice) ?></div>
         <?php endif; ?>
+        <?php if (is_demo()): ?>
+            <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"><strong>Acesso Demo</strong><br>Usuario: <code>demo</code><br>Senha: <code>demo123</code></div>
+        <?php endif; ?>
         <form method="post" class="space-y-4">
-            <label class="block text-sm font-medium text-zinc-700">Email
-                <input name="email" type="email" required class="mt-2 h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none transition placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-950" placeholder="voce@email.com">
+            <label class="block text-sm font-medium text-zinc-700"><?= is_demo() ? 'Email ou usuario' : 'Email' ?>
+                <input name="email" type="<?= is_demo() ? 'text' : 'email' ?>" required class="mt-2 h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none transition placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-950" placeholder="voce@email.com">
             </label>
             <label class="block text-sm font-medium text-zinc-700">Senha
                 <input name="password" type="password" required class="mt-2 h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none transition placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-950" placeholder="Sua senha">
@@ -70,10 +78,12 @@ app_shell_head('Entrar');
                 Entrar
             </button>
         </form>
+        <?php if (!is_demo()): ?>
         <div class="mt-5 space-y-2 text-center text-sm text-zinc-500">
             <p><a class="font-medium text-zinc-900 underline-offset-4 hover:underline" href="reset_with_question.php">Esqueci minha senha</a></p>
             <p>Ainda nao tem conta? <a class="font-medium text-zinc-900 underline-offset-4 hover:underline" href="register.php">Cadastre-se</a></p>
         </div>
+        <?php endif; ?>
     </section>
 </main>
 <?php app_shell_foot(); ?>
